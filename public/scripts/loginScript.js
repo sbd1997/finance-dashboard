@@ -1,125 +1,104 @@
 // Elementos del DOM
-const loginTab = document.getElementById('loginTab');
-const registerTab = document.getElementById('registerTab');
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-const showLogin = document.getElementById('showLogin');
-const showRegister = document.getElementById('showRegister');
-
-// Mostrar formulario de login
-function showLoginForm() {
-    loginTab.classList.add('active');
-    registerTab.classList.remove('active');
-    loginForm.classList.add('active');
-    registerForm.classList.remove('active');
-}
-
-// Mostrar formulario de registro
-function showRegisterForm() {
-    registerTab.classList.add('active');
-    loginTab.classList.remove('active');
-    registerForm.classList.add('active');
-    loginForm.classList.remove('active');
-}
-
-// Event listeners para las pestañas
-loginTab.addEventListener('click', showLoginForm);
-registerTab.addEventListener('click', showRegisterForm);
-
-// Event listeners para los enlaces de alternancia
-showLogin.addEventListener('click', showLoginForm);
-showRegister.addEventListener('click', showRegisterForm);
-
-// Manejo de envío de formularios (ejemplo)
-loginForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const username = document.getElementById("loginEmail").value;
-    const password = document.getElementById("loginPassword").value;
-
-    try {
-        // Enviar datos al backend usando fetch
-        const response = await fetch('/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, password })
-        });
-        // Obtener la respuesta del servidor
-    const data = await response.json();
-
-    // Si la respuesta no es exitosa (status no es 200), mostrar el mensaje de error
-    if (response.status !== 200) {
-      document.getElementById('error-message').textContent = data.message;
-      document.getElementById('error-message').style.display = 'block';
-
-      // Hacer que el mensaje desaparezca después de 3 segundos
-      setTimeout(() => {
-        document.getElementById('error-message').style.display = 'none';
-      }, 3000); // 3000 milisegundos = 3 segundos
-      
-    } else {
-      // Si la respuesta es exitosa, redirigir a la página principal
-      window.location.href = data.redirect;
-    }
-
-  } catch (error) {
-    console.error('Error al procesar el formulario:', error);
-    // Si ocurre un error en la comunicación con el servidor
-    document.getElementById('error-message').textContent = 'Hubo un error al procesar la solicitud';
-    document.getElementById('error-message').style.display = 'block';
+const elements = {
+  tabs: {
+    login: document.getElementById('loginTab'),
+    register: document.getElementById('registerTab')
+  },
+  forms: {
+    login: document.getElementById('loginForm'),
+    register: document.getElementById('registerForm')
+  },
+  links: {
+    showLogin: document.getElementById('showLogin'),
+    showRegister: document.getElementById('showRegister')
+  },
+  errorMessages: {
+    login: document.getElementById('error-message'),
+    register: document.getElementById('error-message-register')
   }
-});
+};
 
-registerForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    //captura de valores de formulario de registro
-    const username = document.getElementById("registerName").value;
-    const email = document.getElementById("registerEmail").value;
-    const password = document.getElementById("registerPassword").value;
-
-    //perticion al servidor con los datos del formulario
-    try {
-        // Enviar datos al backend usando fetch
-        const response = await fetch('/registro', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, email, password})
-        });
-
-    //esperar la respuesta del servidor
+// Funciones de utilidad
+const utils = {
+  showElement: (element) => element.classList.add('active'),
+  hideElement: (element) => element.classList.remove('active'),
+  showError: (element, message, duration = 3000) => {
+    element.textContent = message;
+    element.style.display = 'block';
+    setTimeout(() => element.style.display = 'none', duration);
+  },
+  handleResponse: async (response, successRedirect, errorElement) => {
     const data = await response.json();
-
-    // Si la respuesta no es exitosa (status !== 200), mostrar mensaje de error
     if (response.status !== 200) {
-        document.getElementById('error-message-register').textContent = data.message;
-        document.getElementById('error-message-register').style.display = 'block';
-  
-        // Desaparecer el mensaje después de 3 segundos
-        setTimeout(() => {
-          document.getElementById('error-message-register').style.display = 'none';
-        }, 3000);
-  
+      utils.showError(errorElement, data.message);
     } else {
-      // Si la respuesta es exitosa, redirigir a la página principal
-      window.location.href = data.redirect;
+      window.location.href = data.redirect || successRedirect;
     }
+  }
+};
 
-      
+// Controlador de formularios
+const formHandler = {
+  showLoginForm: () => {
+    utils.showElement(elements.tabs.login);
+    utils.hideElement(elements.tabs.register);
+    utils.showElement(elements.forms.login);
+    utils.hideElement(elements.forms.register);
+  },
+  
+  showRegisterForm: () => {
+    utils.showElement(elements.tabs.register);
+    utils.hideElement(elements.tabs.login);
+    utils.showElement(elements.forms.register);
+    utils.hideElement(elements.forms.login);
+  },
+  
+  handleLogin: async (e) => {
+    e.preventDefault();
+    const formData = {
+      username: document.getElementById("loginEmail").value,
+      password: document.getElementById("loginPassword").value
+    };
+    
+    try {
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      await utils.handleResponse(response, '/', elements.errorMessages.login);
     } catch (error) {
-        console.error('Error al registrar usuario:', error);
-        // Si ocurre un error en la comunicación con el servidor
-        document.getElementById('error-message-register').textContent = 'Hubo un error al procesar el registro';
-        document.getElementById('error-message-register').style.display = 'block';
+      console.error('Error al procesar el formulario:', error);
+      utils.showError(elements.errorMessages.login, 'Hubo un error al procesar la solicitud');
+    }
+  },
+  
+  handleRegister: async (e) => {
+    e.preventDefault();
+    const formData = {
+      username: document.getElementById("registerName").value,
+      email: document.getElementById("registerEmail").value,
+      password: document.getElementById("registerPassword").value
+    };
     
-        setTimeout(() => {
-          document.getElementById('error-message-register').style.display = 'none';
-        }, 3000);
-      }
-    
-    showLoginForm();
-});
+    try {
+      const response = await fetch('/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      await utils.handleResponse(response, '/', elements.errorMessages.register);
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      utils.showError(elements.errorMessages.register, 'Hubo un error al procesar el registro');
+    }
+  }
+};
+
+// Event listeners
+elements.tabs.login.addEventListener('click', formHandler.showLoginForm);
+elements.tabs.register.addEventListener('click', formHandler.showRegisterForm);
+elements.links.showLogin.addEventListener('click', formHandler.showLoginForm);
+elements.links.showRegister.addEventListener('click', formHandler.showRegisterForm);
+elements.forms.login.addEventListener('submit', formHandler.handleLogin);
+elements.forms.register.addEventListener('submit', formHandler.handleRegister);

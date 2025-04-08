@@ -74,10 +74,15 @@ app.post('/registro', async (req, res) => {
     if (await User.findOne({ username: username })) {
       return res.status(400).json({ message: 'El usuario ya existe' });
     }
+
+    if (await User.findOne({correo: email})){
+      return res.status(400).json({message: 'correo en uso'});
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await new User({ username: username, correo: email, password: hashedPassword }).save();
-    res.status(200).json({ message: 'Usuario registrado correctamente', redirect: '/' });
+    res.status(200).json({ message: 'Usuario registrado correctamente'});
   } catch (err) {
     res.status(500).json({ message: 'Error en el servidor' });
   }
