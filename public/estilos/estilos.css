@@ -196,3 +196,9 @@ body {
     color: var(--primary-color);
     font-size: 40px;
 }
+
+.error{
+    color: var(--error-color);
+    margin-top: 10px;
+    text-align: center;
+}

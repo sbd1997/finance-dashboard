@@ -104,10 +104,10 @@ registerForm.addEventListener('submit', async function(e) {
           document.getElementById('error-message-register').style.display = 'none';
         }, 3000);
   
-      } else {
-        // Si la respuesta es exitosa, redirigir a la página principal
-        window.location.href = data.redirect;
-      }
+    } else {
+      // Si la respuesta es exitosa, redirigir a la página principal
+      window.location.href = data.redirect;
+    }
 
       
     } catch (error) {
